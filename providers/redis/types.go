@@ -12,12 +12,11 @@ type Config struct {
 	// Key prefix
 	KeyPrefix string
 
-	// The network type, either tcp or unix.
-	// Default is tcp.
-	Network string
-
 	// host:port address.
 	Addr string
+
+	// host:port address list.
+	Addrs []string
 
 	// Optional password. Must match the password specified in the
 	// requirepass server configuration option.
@@ -82,13 +81,10 @@ type Config struct {
 
 	// TLS Config to use. When set TLS will be negotiated.
 	TLSConfig *tls.Config
-
-	// Limiter interface used to implemented circuit breaker or rate limiter.
-	Limiter redis.Limiter
 }
 
 // Provider backend manager
 type Provider struct {
 	config Config
-	db     *redis.Client
+	db     redis.UniversalClient
 }

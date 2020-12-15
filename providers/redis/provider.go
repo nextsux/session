@@ -12,13 +12,20 @@ var all = []byte("*")
 
 // New returns a new configured redis provider
 func New(cfg Config) (*Provider, error) {
-	if cfg.Addr == "" {
+	if cfg.Addr == "" && len(cfg.Addrs) == 0 {
 		return nil, errConfigAddrEmpty
 	}
 
-	db := redis.NewClient(&redis.Options{
-		Network:            cfg.Network,
-		Addr:               cfg.Addr,
+	// Convert old cfg.Addr to list for backward compatibility
+	var addrs []string
+	if len(cfg.Addrs) > 0 {
+		addrs = cfg.Addrs
+	} else {
+		addrs = []string{cfg.Addr}
+	}
+
+	db := redis.NewUniversalClient(&redis.UniversalOptions{
+		Addrs:              addrs,
 		Password:           cfg.Password,
 		DB:                 cfg.DB,
 		MaxRetries:         cfg.MaxRetries,
@@ -34,7 +41,6 @@ func New(cfg Config) (*Provider, error) {
 		IdleTimeout:        cfg.IdleTimeout,
 		IdleCheckFrequency: cfg.IdleCheckFrequency,
 		TLSConfig:          cfg.TLSConfig,
-		Limiter:            cfg.Limiter,
 	})
 
 	if err := db.Ping(context.Background()).Err(); err != nil {
